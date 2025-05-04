@@ -2,267 +2,379 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>TapSwap Clone</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TapSwap Pro</title>
     <style>
-        /* Basic Reset & Styling */
+        /* --- CSS Variables (Theme) --- */
+        :root {
+            --background-color: #121212; /* Darker background */
+            --surface-color: #1e1e1e; /* Slightly lighter surface */
+            --primary-color: #f0c040; /* Gold accent */
+            --secondary-color: #ff5722; /* Tap button color */
+            --text-color: #e0e0e0; /* Light grey text */
+            --text-secondary-color: #a0a0a0; /* Dimmer text */
+            --success-color: #4caf50; /* Energy, success messages */
+            --error-color: #f44336; /* Error messages */
+            --disabled-color: #555555;
+            --border-color: #333333;
+            --nav-height: 65px;
+            --button-radius: 8px;
+            --transition-speed: 0.2s;
+        }
+
+        /* --- Basic Reset & Global Styles --- */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
         }
 
         html, body {
             height: 100%;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: #1a1a1a; /* Dark theme background */
-            color: #ffffff; /* Light text color */
-            overflow: hidden; /* Prevent scrolling of the whole page */
+            background-color: var(--background-color);
+            color: var(--text-color);
+            overflow: hidden; /* Prevent body scrolling */
+            font-size: 16px;
+        }
+
+        body {
             display: flex;
             flex-direction: column;
         }
 
         #app {
             flex-grow: 1;
-            overflow-y: auto; /* Allow content scrolling */
-            padding-bottom: 70px; /* Space for bottom nav */
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center content horizontally */
+            overflow-y: auto;
+            padding: 20px 15px var(--nav-height) 15px; /* Adjust padding */
+            position: relative; /* Needed for absolute positioning of messages if desired */
         }
 
-        /* Page Visibility */
+        /* --- Page Visibility & Transitions --- */
         .page {
-            display: none; /* Hide all pages by default */
+            display: none;
             width: 100%;
-            padding: 20px;
-            animation: fadeIn 0.3s ease-in-out;
+            animation: fadeIn var(--transition-speed) ease-in-out;
         }
 
         .page.active {
-            display: block; /* Show active page */
+            display: block;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Bottom Navigation */
+        /* --- Bottom Navigation --- */
         #bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 60px;
-            background-color: #282828; /* Slightly lighter dark */
-            border-top: 1px solid #444;
+            height: var(--nav-height);
+            background-color: var(--surface-color);
+            border-top: 1px solid var(--border-color);
             display: flex;
             justify-content: space-around;
             align-items: center;
             z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
         }
 
         #bottom-nav button {
             background: none;
             border: none;
-            color: #aaa; /* Inactive color */
-            font-size: 14px;
+            color: var(--text-secondary-color);
+            font-size: 13px; /* Slightly smaller */
             cursor: pointer;
-            padding: 10px;
+            padding: 10px 5px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: color 0.2s ease;
+            transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
         }
-
+        #bottom-nav button svg { /* For icons later */
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+        #bottom-nav button:hover {
+             color: var(--text-color);
+        }
         #bottom-nav button.active-nav {
-            color: #ffffff; /* Active color */
-            font-weight: bold;
+            color: var(--primary-color);
+            font-weight: 600;
+            transform: scale(1.05); /* Subtle scale effect */
         }
 
-        /* Shared Styles */
+        /* --- Common Elements --- */
         h1, h2 {
             text-align: center;
-            margin-bottom: 20px;
-            color: #f0c040; /* Gold-ish color */
+            margin-bottom: 25px;
+            color: var(--primary-color);
+            font-weight: 600;
         }
 
         .points-display {
-            font-size: 1.8em;
-            font-weight: bold;
+            font-size: 2.2em; /* Larger points display */
+            font-weight: 700;
             text-align: center;
-            margin-bottom: 15px;
-            color: #f0c040;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            letter-spacing: 1px;
         }
 
         button, input[type="submit"] {
-            background-color: #f0c040;
-            color: #1a1a1a;
+            background-color: var(--primary-color);
+            color: var(--background-color);
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px 25px;
+            border-radius: var(--button-radius);
+            font-size: 1em;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
             margin-top: 10px;
+            display: inline-block; /* Ensure it behaves like a block for margin */
+            text-align: center;
         }
 
-        button:disabled {
-            background-color: #555;
+        button:disabled, input[type="submit"]:disabled {
+            background-color: var(--disabled-color);
+            color: var(--text-secondary-color);
             cursor: not-allowed;
+            transform: none;
         }
 
-        button:hover:not(:disabled) {
-            background-color: #d8ab37;
+        button:not(:disabled):hover, input[type="submit"]:not(:disabled):hover {
+            background-color: #d8ab37; /* Darker gold on hover */
+        }
+        button:not(:disabled):active, input[type="submit"]:not(:disabled):active {
+             transform: scale(0.97);
         }
 
-        /* Tap Section */
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .message.success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
+        }
+        .message.error {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--error-color);
+             border: 1px solid var(--error-color);
+        }
+
+        /* --- Tap Section --- */
         #tap-section {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Center vertically if possible */
             text-align: center;
-            height: calc(100% - 40px); /* Full height minus padding */
+            padding-top: 5vh; /* Add some top padding */
         }
 
         #tap-button {
-            width: 150px;
-            height: 150px;
+            width: 180px; /* Larger tap area */
+            height: 180px;
             border-radius: 50%;
-            background-color: #ff5722; /* Cat color? :) */
-            border: 5px solid #f0c040;
+            background: radial-gradient(circle, #ff7a50 0%, var(--secondary-color) 100%); /* Gradient background */
+            border: 6px solid var(--primary-color);
             color: white;
-            font-size: 24px;
+            font-size: 1.8em; /* Larger text */
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            user-select: none; /* Prevent text selection */
-            transition: transform 0.1s ease, background-color 0.2s;
-            margin-top: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            user-select: none;
+            transition: transform 0.1s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4), 0 0 15px rgba(255, 87, 34, 0.5); /* Enhanced shadow */
+            /* Prevent accidental zoom/scroll on mobile */
+            touch-action: manipulation;
         }
-
         #tap-button:active {
-            transform: scale(0.95);
+            transform: scale(0.94);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 0 10px rgba(255, 87, 34, 0.4);
+        }
+        #tap-button.disabled { /* Style when energy is 0 */
+             background: var(--disabled-color);
+             color: var(--text-secondary-color);
+             cursor: not-allowed;
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+             border-color: var(--text-secondary-color);
         }
 
         #energy-container {
-            width: 80%;
-            max-width: 300px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
         }
-
+        #energy-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: var(--text-secondary-color);
+        }
         #energy-bar {
             width: 100%;
-            height: 20px;
-            background-color: #444;
-            border-radius: 10px;
+            height: 15px; /* Slightly thinner */
+            background-color: var(--border-color); /* Darker track */
+            border-radius: 15px;
             overflow: hidden;
-            margin-top: 5px;
+            position: relative; /* For text overlay if needed */
         }
-
         #energy-fill {
             width: 100%; /* Controlled by JS */
             height: 100%;
-            background-color: #4caf50; /* Green energy */
-            border-radius: 10px;
-            transition: width 0.5s linear;
+            background: linear-gradient(90deg, #66bb6a 0%, var(--success-color) 100%); /* Gradient fill */
+            border-radius: 15px;
+            transition: width 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Smooth bounce transition */
         }
-
         #energy-level {
             font-size: 1em;
-            margin-top: 5px;
+            margin-top: 8px;
+            font-weight: 500;
         }
 
-        /* Profile Section */
-        #profile-section p {
-            background-color: #282828;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+        /* --- Profile Section --- */
+        #profile-section .profile-item {
+            background-color: var(--surface-color);
+            padding: 15px 20px;
+            border-radius: var(--button-radius);
+            margin-bottom: 15px;
+            font-size: 1.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border-color);
         }
-        #profile-section p strong {
-            color: #f0c040;
+        #profile-section .profile-item strong {
+            color: var(--primary-color);
+            margin-right: 10px;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+         #profile-section .profile-item span {
+            word-break: break-all; /* Handle long referral links */
+            text-align: right;
+            color: var(--text-secondary-color);
+        }
+         #copy-ref-btn {
+            margin-left: 15px;
+            padding: 6px 12px;
+            font-size: 0.8em;
+            margin-top: 0; /* Override default button margin */
+            background-color: var(--surface-color);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+        #copy-ref-btn:hover {
+             background-color: rgba(240, 192, 64, 0.1);
         }
 
-        /* Task Section */
+        /* --- Task Section --- */
         .task-item {
-            background-color: #282828;
+            background-color: var(--surface-color);
             padding: 15px;
-            border-radius: 8px;
+            border-radius: var(--button-radius);
             margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed) ease;
+        }
+         .task-item:hover {
+             background-color: #2a2a2a; /* Slightly lighter on hover */
+         }
+        .task-item .task-info {
+            flex-grow: 1;
+            margin-right: 15px;
         }
         .task-item p {
-            margin: 0;
-            flex-grow: 1;
-            margin-right: 10px;
+            margin: 0 0 5px 0;
+            font-weight: 500;
         }
-        .task-item span {
+        .task-item span { /* Reward text */
             font-weight: bold;
-            color: #f0c040;
+            color: var(--primary-color);
+            font-size: 0.9em;
         }
         .task-item button {
-            padding: 8px 15px;
-            font-size: 14px;
+            padding: 8px 18px;
+            font-size: 0.9em;
             margin-top: 0;
-            min-width: 100px; /* Ensure buttons have similar width */
+            min-width: 90px; /* Ensure minimum width */
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        .task-item button:disabled {
+             background-color: var(--success-color); /* Green when completed */
+             color: white;
+             opacity: 0.8;
         }
 
-        /* Withdraw Section */
-        #withdraw-section form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #282828;
-            padding: 20px;
-            border-radius: 8px;
+        /* --- Withdraw Section --- */
+        #withdraw-form-container {
+            background-color: var(--surface-color);
+            padding: 25px 20px;
+            border-radius: var(--button-radius);
+             border: 1px solid var(--border-color);
         }
-        #withdraw-section label {
-            margin-top: 10px;
-            margin-bottom: 5px;
-            font-weight: bold;
+        #withdraw-form label {
+            display: block; /* Each on new line */
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-secondary-color);
+        }
+        #withdraw-form input[type="number"],
+        #withdraw-form select,
+        #withdraw-form input[type="text"] {
             width: 100%;
-            max-width: 300px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: var(--button-radius);
+            border: 1px solid var(--border-color);
+            background-color: var(--background-color); /* Match main background */
+            color: var(--text-color);
+            font-size: 1em;
+            transition: border-color var(--transition-speed) ease;
         }
-        #withdraw-section input[type="number"],
-        #withdraw-section select,
-        #withdraw-section input[type="text"] {
-            width: 100%;
-            max-width: 300px;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #555;
-            background-color: #333;
-            color: #fff;
-            font-size: 16px;
+        #withdraw-form input:focus, #withdraw-form select:focus {
+            outline: none;
+            border-color: var(--primary-color);
         }
-        #withdraw-section select {
-             appearance: none; /* For custom arrow if desired */
-            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23aaa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+         #withdraw-form select {
+             appearance: none;
+             background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23AAAAAA%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
             background-repeat: no-repeat;
-            background-position: right 10px center;
-            background-size: 12px auto;
-            padding-right: 30px; /* Make space for arrow */
+            background-position: right 15px center;
+            background-size: 10px auto;
+            padding-right: 40px;
         }
-        #withdraw-section input[type="submit"] {
+        #withdraw-form input[type="submit"] {
             width: 100%;
-            max-width: 300px;
+            margin-top: 20px; /* More space before submit */
+        }
+        #withdraw-points-available {
+             font-weight: bold;
+             color: var(--primary-color);
         }
         #withdraw-message {
-            margin-top: 15px;
-            font-weight: bold;
-            text-align: center;
+            /* Uses .message .success .error classes */
         }
     </style>
 </head>
@@ -272,20 +384,24 @@
         <!-- Profile Section -->
         <div id="profile-section" class="page">
             <h1>Profile</h1>
-            <p><strong>User:</strong> <span id="profile-username">Loading...</span></p>
-            <p><strong>Joined:</strong> <span id="profile-joindate">Loading...</span></p>
-            <p><strong>Points:</strong> <span id="profile-points">Loading...</span></p>
-            <p><strong>Referral Link:</strong> <span id="profile-referral">Loading...</span> <button id="copy-ref-btn" style="margin-left: 10px; padding: 5px 10px; font-size: 12px;">Copy</button></p>
+            <div class="profile-item"><strong>User:</strong> <span id="profile-username">Loading...</span></div>
+            <div class="profile-item"><strong>Joined:</strong> <span id="profile-joindate">Loading...</span></div>
+            <div class="profile-item"><strong>Points:</strong> <span id="profile-points">Loading...</span></div>
+            <div class="profile-item">
+                <strong>Referral:</strong>
+                <span id="profile-referral">Loading...</span>
+                <button id="copy-ref-btn">Copy</button>
+            </div>
         </div>
 
         <!-- Tap Section -->
         <div id="tap-section" class="page">
-            <!-- Points display moved above tap button -->
+             <!-- Points display moved above tap button -->
             <div class="points-display" id="tap-points-display">0</div>
-            <div id="tap-button">TAP!</div>
+            <div id="tap-button" role="button" aria-label="Tap to earn points">TAP!</div>
             <div id="energy-container">
-                <label for="energy-bar">Energy</label>
-                <div id="energy-bar">
+                <label id="energy-label" for="energy-bar">Energy</label>
+                <div id="energy-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
                     <div id="energy-fill"></div>
                 </div>
                 <div id="energy-level">100 / 100</div>
@@ -296,333 +412,465 @@
         <div id="task-section" class="page">
             <h1>Tasks</h1>
             <div id="task-list">
-                <!-- Tasks will be loaded here by JS -->
+                <!-- Tasks loaded here -->
+                 <p style="text-align: center; color: var(--text-secondary-color);">Loading tasks...</p>
             </div>
         </div>
 
         <!-- Withdraw Section -->
         <div id="withdraw-section" class="page">
             <h1>Withdraw Points</h1>
-            <form id="withdraw-form">
-                <p>Your Points: <span id="withdraw-points-available">0</span></p>
-                <label for="withdraw-amount">Amount:</label>
-                <input type="number" id="withdraw-amount" name="amount" min="1" required>
+            <div id="withdraw-form-container">
+                 <p style="text-align: center; margin-bottom: 15px;">Available Points: <span id="withdraw-points-available">0</span></p>
+                 <form id="withdraw-form">
+                    <label for="withdraw-amount">Amount to Withdraw:</label>
+                    <input type="number" id="withdraw-amount" name="amount" min="1" required placeholder="e.g., 10000">
 
-                <label for="withdraw-method">Method:</label>
-                <select id="withdraw-method" name="method" required>
-                    <option value="">--Select Method--</option>
-                    <option value="paypal">PayPal</option>
-                    <option value="wired">Wired Transfer</option>
-                    <option value="crypto">Crypto (USDT)</option>
-                </select>
+                    <label for="withdraw-method">Withdrawal Method:</label>
+                    <select id="withdraw-method" name="method" required>
+                        <option value="" disabled selected>-- Select Method --</option>
+                        <option value="paypal">PayPal</option>
+                        <option value="wired">Wired Transfer</option>
+                        <option value="crypto">Crypto (USDT BEP20)</option>
+                    </select>
 
-                <label for="withdraw-details">Details (e.g., PayPal email, Bank info, Wallet address):</label>
-                <input type="text" id="withdraw-details" name="details" required>
+                    <label for="withdraw-details">Details (Email / Bank / Wallet Address):</label>
+                    <input type="text" id="withdraw-details" name="details" required placeholder="Enter corresponding details">
 
-                <input type="submit" value="Withdraw">
-            </form>
-             <div id="withdraw-message"></div>
+                    <input type="submit" value="Request Withdraw">
+                </form>
+                 <div id="withdraw-message" class="message" style="display: none;"></div> <!-- Initially hidden -->
+            </div>
         </div>
     </div>
 
     <!-- Bottom Navigation Bar -->
     <nav id="bottom-nav">
+        <!-- SVG icons can be added here -->
         <button data-page="profile-section">Profile</button>
-        <button data-page="tap-section" class="active-nav">Tap</button> <!-- Default active -->
+        <button data-page="tap-section" class="active-nav">Tap</button>
         <button data-page="task-section">Tasks</button>
         <button data-page="withdraw-section">Withdraw</button>
     </nav>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- State Management ---
-            const LOCAL_STORAGE_KEY = 'tapSwapCloneState';
-            const MAX_ENERGY = 100;
-            const ENERGY_REFILL_RATE_PER_SECOND = 0.5; // How much energy refills per second
-            const TAP_ENERGY_COST = 1;
-            const TAP_POINTS_GAIN = 1;
+        // --- Constants ---
+        const LOCAL_STORAGE_KEY = 'tapSwapProState';
+        const MAX_ENERGY = 100;
+        const ENERGY_REFILL_RATE_PER_SECOND = 0.5; // Energy per second
+        const TAP_ENERGY_COST = 1;
+        const TAP_POINTS_GAIN = 1;
+        const SAVE_INTERVAL_MS = 5000; // Save state every 5 seconds
 
-            let gameState = {
-                userName: "TelegramUser123", // Placeholder
+        // --- Tasks Definition ---
+        const TASKS_CONFIG = [
+            { id: 'watch_yt_1', description: 'Watch Tutorial Video', reward: 1000 },
+            { id: 'watch_yt_2', description: 'Watch Partnership Promo', reward: 1000 },
+            { id: 'watch_yt_3', description: 'Watch Feature Update', reward: 1000 },
+            { id: 'watch_yt_4', description: 'Watch Community Call', reward: 1000 },
+            { id: 'watch_yt_5', description: 'Watch Roadmap Video', reward: 1000 },
+            { id: 'follow_tg', description: 'Follow Telegram Channel', reward: 500 },
+            { id: 'join_discord', description: 'Join Discord Server', reward: 500 },
+        ];
+
+        // --- State Management Module ---
+        const StateManager = (() => {
+            const defaults = {
+                userName: "User" + Math.floor(Math.random() * 10000), // More dynamic default
                 joiningDate: new Date().toISOString(),
                 points: 0,
                 energy: MAX_ENERGY,
-                referralLink: `t.me/tapswap_clone?ref=${Date.now()}`, // Simple placeholder link
-                completedTasks: [], // Array of task IDs
+                referralLink: `t.me/tapswap_pro_clone?ref=${Date.now().toString(36)}`, // Base36 ID
+                completedTasks: [],
+                lastEnergyUpdate: Date.now() // For offline energy calculation
             };
+            let state = { ...defaults };
 
-            // --- DOM Elements ---
-            const app = document.getElementById('app');
-            const pages = document.querySelectorAll('.page');
-            const navButtons = document.querySelectorAll('#bottom-nav button');
-
-            // Profile Elements
-            const profileUsername = document.getElementById('profile-username');
-            const profileJoinDate = document.getElementById('profile-joindate');
-            const profilePoints = document.getElementById('profile-points');
-            const profileReferral = document.getElementById('profile-referral');
-            const copyRefBtn = document.getElementById('copy-ref-btn');
-
-            // Tap Elements
-            const tapButton = document.getElementById('tap-button');
-            const tapPointsDisplay = document.getElementById('tap-points-display');
-            const energyFill = document.getElementById('energy-fill');
-            const energyLevel = document.getElementById('energy-level');
-
-            // Task Elements
-            const taskList = document.getElementById('task-list');
-
-            // Withdraw Elements
-            const withdrawPointsAvailable = document.getElementById('withdraw-points-available');
-            const withdrawForm = document.getElementById('withdraw-form');
-            const withdrawAmountInput = document.getElementById('withdraw-amount');
-            const withdrawMessage = document.getElementById('withdraw-message');
-
-            // --- Tasks Definition ---
-            const tasks = [
-                { id: 'watch_yt_1', description: 'Watch YouTube Video 1', reward: 1000 },
-                { id: 'watch_yt_2', description: 'Watch YouTube Video 2', reward: 1000 },
-                { id: 'watch_yt_3', description: 'Watch YouTube Video 3', reward: 1000 },
-                { id: 'watch_yt_4', description: 'Watch YouTube Video 4', reward: 1000 },
-                { id: 'watch_yt_5', description: 'Watch YouTube Video 5', reward: 1000 },
-                { id: 'follow_tg', description: 'Follow Telegram Channel', reward: 500 },
-                { id: 'join_discord', description: 'Join Discord Server', reward: 500 },
-            ];
-
-            // --- Functions ---
-
-            function saveState() {
+            function save() {
                 try {
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(gameState));
+                    state.lastEnergyUpdate = Date.now(); // Update timestamp before saving
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+                    // console.log("State saved:", state);
                 } catch (error) {
-                    console.error("Error saving state to localStorage:", error);
+                    console.error("Error saving state:", error);
                 }
             }
 
-            function loadState() {
+            function load() {
                 const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
                 if (savedState) {
                     try {
                         const parsedState = JSON.parse(savedState);
-                        // Merge saved state with defaults to ensure new properties are added
-                        gameState = { ...gameState, ...parsedState };
-                        // Ensure energy is not above max after loading
-                        gameState.energy = Math.min(gameState.energy, MAX_ENERGY);
+                        state = { ...defaults, ...parsedState }; // Merge, ensuring defaults exist
+
+                        // Calculate offline energy gain
+                        const now = Date.now();
+                        const timeDiffSeconds = Math.floor((now - (state.lastEnergyUpdate || now)) / 1000);
+                        const energyGained = Math.max(0, timeDiffSeconds * ENERGY_REFILL_RATE_PER_SECOND);
+                        state.energy = Math.min(MAX_ENERGY, state.energy + energyGained);
+                        state.lastEnergyUpdate = now; // Update timestamp after calculation
+                         console.log(`Loaded state. Offline time: ${timeDiffSeconds}s, Energy gained: ${energyGained.toFixed(2)}`);
+
                     } catch (error) {
-                        console.error("Error parsing state from localStorage:", error);
-                        // If parsing fails, use default and save it
-                        saveState();
+                        console.error("Error parsing state, resetting:", error);
+                        state = { ...defaults }; // Reset if corrupted
+                        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
                     }
-                } else {
-                    // Save initial default state if nothing is found
-                    saveState();
                 }
+                // Ensure energy doesn't exceed max even after potential merge issues
+                 state.energy = Math.min(state.energy, MAX_ENERGY);
+                save(); // Save the potentially updated state (with offline energy)
             }
 
-            function updatePointsDisplay() {
-                const points = Math.floor(gameState.points);
-                tapPointsDisplay.textContent = points;
-                profilePoints.textContent = points;
-                withdrawPointsAvailable.textContent = points;
-                withdrawAmountInput.max = points; // Update max withdrawable amount
-            }
-
-            function updateEnergyDisplay() {
-                const currentEnergy = Math.floor(gameState.energy);
-                energyLevel.textContent = `${currentEnergy} / ${MAX_ENERGY}`;
-                const energyPercent = (currentEnergy / MAX_ENERGY) * 100;
-                energyFill.style.width = `${energyPercent}%`;
-                // Disable tap button if not enough energy
-                tapButton.disabled = currentEnergy < TAP_ENERGY_COST;
-                tapButton.style.cursor = tapButton.disabled ? 'not-allowed' : 'pointer';
-                tapButton.style.backgroundColor = tapButton.disabled ? '#555' : '#ff5722';
-            }
-
-            function showPage(pageId) {
-                pages.forEach(page => {
-                    page.classList.remove('active');
-                });
-                const targetPage = document.getElementById(pageId);
-                if (targetPage) {
-                    targetPage.classList.add('active');
-                    // Scroll to top of the page content when switching
-                    app.scrollTop = 0;
-                }
-
-                navButtons.forEach(button => {
-                    button.classList.remove('active-nav');
-                    if (button.dataset.page === pageId) {
-                        button.classList.add('active-nav');
+            // Public methods
+            return {
+                load,
+                save,
+                getState: () => ({ ...state }), // Return a copy to prevent direct mutation
+                getValue: (key) => state[key],
+                setValue: (key, value) => {
+                    if (key in state) {
+                        state[key] = value;
+                    } else {
+                         console.warn(`Attempted to set unknown state key: ${key}`);
                     }
-                });
+                },
+                updateEnergy: (change) => {
+                    state.energy = Math.max(0, Math.min(MAX_ENERGY, state.energy + change));
+                    state.lastEnergyUpdate = Date.now(); // Update time on energy change
+                },
+                addPoints: (amount) => {
+                    if(amount > 0) state.points += amount;
+                },
+                deductPoints: (amount) => {
+                     if (amount > 0 && state.points >= amount) {
+                        state.points -= amount;
+                        return true; // Success
+                    }
+                    return false; // Failure (insufficient points)
+                },
+                completeTask: (taskId) => {
+                    if (!state.completedTasks.includes(taskId)) {
+                        state.completedTasks.push(taskId);
+                        return true;
+                    }
+                    return false;
+                }
+            };
+        })();
 
-                // Update content specific to the shown page
-                if (pageId === 'profile-section') updateProfileDisplay();
-                if (pageId === 'task-section') renderTasks();
-                if (pageId === 'withdraw-section') updateWithdrawDisplay();
+        // --- UI Management Module ---
+        const UIManager = (() => {
+            const elements = {
+                app: document.getElementById('app'),
+                pages: document.querySelectorAll('.page'),
+                navButtons: document.querySelectorAll('#bottom-nav button'),
+                profileUsername: document.getElementById('profile-username'),
+                profileJoinDate: document.getElementById('profile-joindate'),
+                profilePoints: document.getElementById('profile-points'),
+                profileReferral: document.getElementById('profile-referral'),
+                copyRefBtn: document.getElementById('copy-ref-btn'),
+                tapPointsDisplay: document.getElementById('tap-points-display'),
+                tapButton: document.getElementById('tap-button'),
+                energyFill: document.getElementById('energy-fill'),
+                energyLevel: document.getElementById('energy-level'),
+                energyBar: document.getElementById('energy-bar'),
+                taskList: document.getElementById('task-list'),
+                withdrawPointsAvailable: document.getElementById('withdraw-points-available'),
+                withdrawForm: document.getElementById('withdraw-form'),
+                withdrawAmountInput: document.getElementById('withdraw-amount'),
+                withdrawMethodSelect: document.getElementById('withdraw-method'),
+                withdrawDetailsInput: document.getElementById('withdraw-details'),
+                withdrawMessage: document.getElementById('withdraw-message'),
+                withdrawSubmitButton: document.querySelector('#withdraw-form input[type="submit"]')
+            };
+
+            function formatPoints(points) {
+                 // Simple integer format for now, could add commas later
+                 return Math.floor(points).toString();
+            }
+
+            return {
+                elements, // Expose elements if needed externally (use with caution)
+                updatePointsDisplay: (points) => {
+                    const formattedPoints = formatPoints(points);
+                    elements.tapPointsDisplay.textContent = formattedPoints;
+                    elements.profilePoints.textContent = formattedPoints;
+                    elements.withdrawPointsAvailable.textContent = formattedPoints;
+                    elements.withdrawAmountInput.max = Math.floor(points); // Update max withdrawable
+                },
+                updateEnergyDisplay: (energy) => {
+                    const currentEnergy = Math.floor(energy);
+                    const energyPercent = Math.max(0, Math.min(100, (energy / MAX_ENERGY) * 100));
+                    elements.energyLevel.textContent = `${currentEnergy} / ${MAX_ENERGY}`;
+                    elements.energyFill.style.width = `${energyPercent}%`;
+                    elements.energyBar.setAttribute('aria-valuenow', currentEnergy);
+
+                    // Update tap button state visually
+                    const canTap = currentEnergy >= TAP_ENERGY_COST;
+                    elements.tapButton.disabled = !canTap; // Use disabled property for logic
+                    elements.tapButton.classList.toggle('disabled', !canTap); // CSS class for styling
+                },
+                showPage: (pageId) => {
+                    elements.pages.forEach(page => page.classList.remove('active'));
+                    const targetPage = document.getElementById(pageId);
+                    if (targetPage) {
+                        targetPage.classList.add('active');
+                        elements.app.scrollTop = 0; // Scroll to top
+                    }
+
+                    elements.navButtons.forEach(button => {
+                        button.classList.toggle('active-nav', button.dataset.page === pageId);
+                    });
+                },
+                updateProfileDisplay: (state) => {
+                    elements.profileUsername.textContent = state.userName;
+                    elements.profileJoinDate.textContent = new Date(state.joiningDate).toLocaleDateString();
+                    elements.profileReferral.textContent = state.referralLink;
+                    // Points updated by updatePointsDisplay
+                },
+                 renderTasks: (tasks, completedTasks) => {
+                    elements.taskList.innerHTML = ''; // Clear placeholder/old tasks
+                    if (!tasks || tasks.length === 0) {
+                         elements.taskList.innerHTML = '<p style="text-align: center; color: var(--text-secondary-color);">No tasks available.</p>';
+                         return;
+                    }
+
+                    tasks.forEach(task => {
+                        const isCompleted = completedTasks.includes(task.id);
+                        const taskElement = document.createElement('div');
+                        taskElement.classList.add('task-item');
+                        taskElement.innerHTML = `
+                            <div class="task-info">
+                                <p>${task.description}</p>
+                                <span>Reward: ${formatPoints(task.reward)} points</span>
+                            </div>
+                            <button data-task-id="${task.id}" ${isCompleted ? 'disabled' : ''}>
+                                ${isCompleted ? 'Completed' : 'Claim'}
+                            </button>
+                        `;
+                        elements.taskList.appendChild(taskElement);
+                    });
+                },
+                 updateTaskButton: (taskId, isCompleted) => {
+                    const button = elements.taskList.querySelector(`button[data-task-id="${taskId}"]`);
+                    if (button) {
+                        button.disabled = isCompleted;
+                        button.textContent = isCompleted ? 'Completed' : 'Claim';
+                    }
+                },
+                displayWithdrawMessage: (text, type = 'info') => {
+                    elements.withdrawMessage.textContent = text;
+                    elements.withdrawMessage.className = 'message'; // Reset classes
+                    if (type === 'success') {
+                        elements.withdrawMessage.classList.add('success');
+                    } else if (type === 'error') {
+                        elements.withdrawMessage.classList.add('error');
+                    }
+                    elements.withdrawMessage.style.display = text ? 'block' : 'none'; // Show/hide
+                },
+                resetWithdrawForm: () => {
+                    elements.withdrawForm.reset();
+                     elements.withdrawSubmitButton.disabled = false; // Re-enable button
+                     elements.withdrawMessage.style.display = 'none'; // Hide message
+                },
+                showTapFeedback: () => {
+                    // Simple scale feedback is already in CSS :active state
+                    // Could add particle effects or number pop-ups here later
+                }
+            };
+        })();
+
+        // --- Core Application Logic ---
+        const App = (() => {
+            let energyRefillInterval = null;
+
+            function handleNavigation(event) {
+                const button = event.target.closest('button[data-page]');
+                if (button) {
+                    const pageId = button.dataset.page;
+                    UIManager.showPage(pageId);
+                    // Update specific page content when shown
+                    switch(pageId) {
+                        case 'profile-section':
+                            UIManager.updateProfileDisplay(StateManager.getState());
+                            break;
+                        case 'task-section':
+                             UIManager.renderTasks(TASKS_CONFIG, StateManager.getValue('completedTasks'));
+                             break;
+                        case 'withdraw-section':
+                             UIManager.resetWithdrawForm(); // Reset form each time it's viewed
+                             UIManager.updatePointsDisplay(StateManager.getValue('points')); // Ensure points are up-to-date
+                            break;
+                    }
+                }
             }
 
             function handleTap() {
-                if (gameState.energy >= TAP_ENERGY_COST) {
-                    gameState.energy -= TAP_ENERGY_COST;
-                    gameState.points += TAP_POINTS_GAIN;
-
-                    updatePointsDisplay();
-                    updateEnergyDisplay();
-                    saveState(); // Save after each tap
-
-                    // Add visual feedback
-                    tapButton.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        tapButton.style.transform = 'scale(1)';
-                    }, 100);
-
+                 if (StateManager.getValue('energy') >= TAP_ENERGY_COST) {
+                    StateManager.updateEnergy(-TAP_ENERGY_COST);
+                    StateManager.addPoints(TAP_POINTS_GAIN);
+                    UIManager.updateEnergyDisplay(StateManager.getValue('energy'));
+                    UIManager.updatePointsDisplay(StateManager.getValue('points'));
+                    UIManager.showTapFeedback();
+                    // Debounce save? For tapping, saving less often might be better.
+                    // The interval save handles this reasonably well.
                 } else {
+                    // Optional: Visual feedback for no energy (e.g., shake button)
                     console.log("Not enough energy!");
                 }
             }
 
-            function refillEnergy() {
-                if (gameState.energy < MAX_ENERGY) {
-                    gameState.energy = Math.min(MAX_ENERGY, gameState.energy + ENERGY_REFILL_RATE_PER_SECOND);
-                    updateEnergyDisplay();
-                    // Save state less frequently for energy refill to avoid excessive writes
-                    // Consider saving only when energy changes significantly or on page change/unload
-                }
-            }
-            // Save state periodically or on unload for energy refills
-            setInterval(saveState, 5000); // Save every 5 seconds for energy changes
-            window.addEventListener('beforeunload', saveState); // Save when closing
+             function handleTaskClaim(event) {
+                 const button = event.target.closest('button[data-task-id]');
+                 if (button && !button.disabled) {
+                    const taskId = button.dataset.taskId;
+                    const task = TASKS_CONFIG.find(t => t.id === taskId);
 
-            function updateProfileDisplay() {
-                profileUsername.textContent = gameState.userName;
-                profileJoinDate.textContent = new Date(gameState.joiningDate).toLocaleDateString();
-                profileReferral.textContent = gameState.referralLink;
-                updatePointsDisplay(); // Ensure points are up-to-date here too
-            }
-
-             function renderTasks() {
-                taskList.innerHTML = ''; // Clear previous tasks
-                tasks.forEach(task => {
-                    const isCompleted = gameState.completedTasks.includes(task.id);
-                    const taskElement = document.createElement('div');
-                    taskElement.classList.add('task-item');
-                    taskElement.innerHTML = `
-                        <div>
-                            <p>${task.description}</p>
-                            <span>Reward: ${task.reward} points</span>
-                        </div>
-                        <button data-task-id="${task.id}" ${isCompleted ? 'disabled' : ''}>
-                            ${isCompleted ? 'Completed' : 'Claim'}
-                        </button>
-                    `;
-                    taskList.appendChild(taskElement);
-                });
-
-                // Add event listeners to the new buttons
-                taskList.querySelectorAll('button[data-task-id]').forEach(button => {
-                    button.addEventListener('click', handleTaskCompletion);
-                });
-            }
-
-            function handleTaskCompletion(event) {
-                const button = event.target;
-                const taskId = button.dataset.taskId;
-
-                if (!gameState.completedTasks.includes(taskId)) {
-                    const task = tasks.find(t => t.id === taskId);
-                    if (task) {
-                        gameState.points += task.reward;
-                        gameState.completedTasks.push(taskId);
-                        button.disabled = true;
-                        button.textContent = 'Completed';
-                        updatePointsDisplay();
-                        saveState();
-                        console.log(`Task ${taskId} completed. Awarded ${task.reward} points.`);
-                         // Optionally, re-render tasks to ensure consistency if needed elsewhere
-                         // renderTasks();
+                    if (task && StateManager.completeTask(taskId)) {
+                         StateManager.addPoints(task.reward);
+                         UIManager.updateTaskButton(taskId, true);
+                         UIManager.updatePointsDisplay(StateManager.getValue('points'));
+                         console.log(`Task ${taskId} completed. Awarded ${task.reward} points.`);
+                         StateManager.save(); // Save immediately after task completion
                     }
-                }
-            }
-
-            function updateWithdrawDisplay() {
-                 updatePointsDisplay(); // Ensure points are current
-                 withdrawMessage.textContent = ''; // Clear previous messages
-                 withdrawForm.reset(); // Reset form fields
+                 }
             }
 
             function handleWithdraw(event) {
                 event.preventDefault();
-                const amount = parseInt(withdrawAmountInput.value, 10);
-                const method = document.getElementById('withdraw-method').value;
-                const details = document.getElementById('withdraw-details').value;
+                UIManager.elements.withdrawSubmitButton.disabled = true; // Prevent double submit
+                UIManager.displayWithdrawMessage(''); // Clear previous messages
 
-                withdrawMessage.textContent = ''; // Clear previous message
+                const amount = parseInt(UIManager.elements.withdrawAmountInput.value, 10);
+                const method = UIManager.elements.withdrawMethodSelect.value;
+                const details = UIManager.elements.withdrawDetailsInput.value.trim();
+                const currentPoints = StateManager.getValue('points');
 
+                // Validation
                 if (isNaN(amount) || amount <= 0) {
-                    withdrawMessage.textContent = 'Please enter a valid amount.';
-                    withdrawMessage.style.color = 'red';
+                    UIManager.displayWithdrawMessage('Please enter a valid positive amount.', 'error');
+                     UIManager.elements.withdrawSubmitButton.disabled = false;
                     return;
                 }
-                if (amount > gameState.points) {
-                    withdrawMessage.textContent = 'Insufficient points.';
-                     withdrawMessage.style.color = 'red';
+                 if (amount > currentPoints) {
+                    UIManager.displayWithdrawMessage('Insufficient points.', 'error');
+                    UIManager.elements.withdrawSubmitButton.disabled = false;
                     return;
                 }
                  if (!method) {
-                    withdrawMessage.textContent = 'Please select a withdrawal method.';
-                    withdrawMessage.style.color = 'red';
+                    UIManager.displayWithdrawMessage('Please select a withdrawal method.', 'error');
+                    UIManager.elements.withdrawSubmitButton.disabled = false;
                     return;
                 }
-                if (!details.trim()) {
-                    withdrawMessage.textContent = 'Please provide withdrawal details.';
-                    withdrawMessage.style.color = 'red';
+                if (!details) {
+                    UIManager.displayWithdrawMessage('Please provide withdrawal details.', 'error');
+                    UIManager.elements.withdrawSubmitButton.disabled = false;
                     return;
                 }
 
-                // Simulate withdrawal
-                gameState.points -= amount;
-                updatePointsDisplay();
-                saveState();
-
-                console.log(`Withdrawal requested: ${amount} points via ${method} to ${details}`);
-                withdrawMessage.textContent = `Withdrawal of ${amount} points requested successfully! (Simulation)`;
-                withdrawMessage.style.color = 'lightgreen';
-                withdrawForm.reset(); // Reset form after successful simulation
-                 updateWithdrawDisplay(); // Refresh available points display
+                // Simulate withdrawal processing (e.g., API call)
+                console.log(`Attempting withdrawal: ${amount} points via ${method} to ${details}`);
+                setTimeout(() => { // Simulate network delay
+                    // In a real app, you'd wait for the server response
+                    if (StateManager.deductPoints(amount)) {
+                        console.log("Withdrawal successful (simulated).");
+                        UIManager.updatePointsDisplay(StateManager.getValue('points'));
+                        UIManager.displayWithdrawMessage(`Withdrawal of ${amount} points requested successfully! (Simulation)`, 'success');
+                        StateManager.save(); // Save state after successful deduction
+                        UIManager.elements.withdrawForm.reset();
+                    } else {
+                        // This case should ideally not happen due to initial check, but good for robustness
+                         console.error("Withdrawal failed (simulated - points mismatch?).");
+                         UIManager.displayWithdrawMessage('Withdrawal failed. Please try again.', 'error');
+                    }
+                     UIManager.elements.withdrawSubmitButton.disabled = false; // Re-enable after processing
+                }, 1000); // 1 second delay simulation
             }
+
+             function refillEnergy() {
+                 const lastUpdate = StateManager.getValue('lastEnergyUpdate');
+                 const now = Date.now();
+                 const timeDiffSeconds = Math.max(0, (now - lastUpdate) / 1000);
+
+                if (StateManager.getValue('energy') < MAX_ENERGY) {
+                     const energyToAdd = timeDiffSeconds * ENERGY_REFILL_RATE_PER_SECOND;
+                     StateManager.updateEnergy(energyToAdd); // updateEnergy handles capping at MAX
+                     UIManager.updateEnergyDisplay(StateManager.getValue('energy'));
+                 } else {
+                     // If energy is full, still update the timestamp to avoid large jumps later
+                      StateManager.setValue('lastEnergyUpdate', now);
+                 }
+             }
 
             function copyReferralLink() {
-                navigator.clipboard.writeText(gameState.referralLink)
-                    .then(() => {
-                        alert("Referral link copied to clipboard!");
-                    })
-                    .catch(err => {
-                        console.error('Failed to copy text: ', err);
-                        alert("Failed to copy link.");
-                    });
+                const link = StateManager.getValue('referralLink');
+                 if (navigator.clipboard && window.isSecureContext) { // Use modern clipboard API
+                     navigator.clipboard.writeText(link)
+                        .then(() => {
+                            alert("Referral link copied!");
+                        })
+                        .catch(err => {
+                            console.error('Clipboard copy failed:', err);
+                            alert("Could not copy link. Please copy manually.");
+                        });
+                } else {
+                    // Fallback for older browsers/insecure contexts (less reliable)
+                    try {
+                        const textArea = document.createElement("textarea");
+                        textArea.value = link;
+                        textArea.style.position = "fixed"; // Prevent scrolling
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                         alert("Referral link copied!");
+                    } catch (err) {
+                         console.error('Fallback clipboard copy failed:', err);
+                         alert("Could not copy link. Please copy manually.");
+                    }
+                }
             }
 
+             function setupEventListeners() {
+                document.getElementById('bottom-nav').addEventListener('click', handleNavigation);
+                UIManager.elements.tapButton.addEventListener('click', handleTap);
+                UIManager.elements.taskList.addEventListener('click', handleTaskClaim); // Event delegation
+                UIManager.elements.withdrawForm.addEventListener('submit', handleWithdraw);
+                UIManager.elements.copyRefBtn.addEventListener('click', copyReferralLink);
 
-            // --- Event Listeners ---
-            navButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    showPage(button.dataset.page);
-                });
-            });
+                 // Save state periodically and on page unload
+                 setInterval(StateManager.save, SAVE_INTERVAL_MS);
+                 window.addEventListener('beforeunload', StateManager.save);
+             }
 
-            tapButton.addEventListener('click', handleTap);
-            withdrawForm.addEventListener('submit', handleWithdraw);
-            copyRefBtn.addEventListener('click', copyReferralLink);
+            function init() {
+                console.log("Initializing TapSwap Pro Clone...");
+                StateManager.load(); // Load state first (calculates offline energy)
 
-            // --- Initialization ---
-            loadState();
-            updatePointsDisplay();
-            updateEnergyDisplay();
-            setInterval(refillEnergy, 1000); // Start energy refill timer
-            showPage('tap-section'); // Show tap section by default
+                // Initial UI setup based on loaded state
+                UIManager.updatePointsDisplay(StateManager.getValue('points'));
+                UIManager.updateEnergyDisplay(StateManager.getValue('energy'));
+                UIManager.showPage('tap-section'); // Show tap section by default
 
-        });
+                // Start energy refill loop AFTER loading state
+                refillEnergy(); // Run once immediately
+                energyRefillInterval = setInterval(refillEnergy, 1000); // Then run every second
+
+                setupEventListeners();
+                console.log("App Initialized.");
+            }
+
+            return {
+                init // Expose only the init function
+            };
+
+        })();
+
+        // --- Start the App ---
+        document.addEventListener('DOMContentLoaded', App.init);
+
     </script>
 
 </body>
