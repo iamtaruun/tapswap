@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TapSwap Clone</title>
+    <style>
+        /* Basic Reset & Styling */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1a1a1a; /* Dark theme background */
+            color: #ffffff; /* Light text color */
+            overflow: hidden; /* Prevent scrolling of the whole page */
+            display: flex;
+            flex-direction: column;
+        }
+
+        #app {
+            flex-grow: 1;
+            overflow-y: auto; /* Allow content scrolling */
+            padding-bottom: 70px; /* Space for bottom nav */
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center content horizontally */
+        }
+
+        /* Page Visibility */
+        .page {
+            display: none; /* Hide all pages by default */
+            width: 100%;
+            padding: 20px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .page.active {
+            display: block; /* Show active page */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Bottom Navigation */
+        #bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #282828; /* Slightly lighter dark */
+            border-top: 1px solid #444;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        #bottom-nav button {
+            background: none;
+            border: none;
+            color: #aaa; /* Inactive color */
+            font-size: 14px;
+            cursor: pointer;
+            padding: 10px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: color 0.2s ease;
+        }
+
+        #bottom-nav button.active-nav {
+            color: #ffffff; /* Active color */
+            font-weight: bold;
+        }
+
+        /* Shared Styles */
+        h1, h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #f0c040; /* Gold-ish color */
+        }
+
+        .points-display {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #f0c040;
+        }
+
+        button, input[type="submit"] {
+            background-color: #f0c040;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #d8ab37;
+        }
+
+        /* Tap Section */
+        #tap-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            height: calc(100% - 40px); /* Full height minus padding */
+        }
+
+        #tap-button {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background-color: #ff5722; /* Cat color? :) */
+            border: 5px solid #f0c040;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none; /* Prevent text selection */
+            transition: transform 0.1s ease, background-color 0.2s;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #tap-button:active {
+            transform: scale(0.95);
+        }
+
+        #energy-container {
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        #energy-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        #energy-fill {
+            width: 100%; /* Controlled by JS */
+            height: 100%;
+            background-color: #4caf50; /* Green energy */
+            border-radius: 10px;
+            transition: width 0.5s linear;
+        }
+
+        #energy-level {
+            font-size: 1em;
+            margin-top: 5px;
+        }
+
+        /* Profile Section */
+        #profile-section p {
+            background-color: #282828;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        #profile-section p strong {
+            color: #f0c040;
+        }
+
+        /* Task Section */
+        .task-item {
+            background-color: #282828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-item p {
+            margin: 0;
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .task-item span {
+            font-weight: bold;
+            color: #f0c040;
+        }
+        .task-item button {
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-top: 0;
+            min-width: 100px; /* Ensure buttons have similar width */
+        }
+
+        /* Withdraw Section */
+        #withdraw-section form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #282828;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #withdraw-section label {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            width: 100%;
+            max-width: 300px;
+        }
+        #withdraw-section input[type="number"],
+        #withdraw-section select,
+        #withdraw-section input[type="text"] {
+            width: 100%;
+            max-width: 300px;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #fff;
+            font-size: 16px;
+        }
+        #withdraw-section select {
+             appearance: none; /* For custom arrow if desired */
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23aaa%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px auto;
+            padding-right: 30px; /* Make space for arrow */
+        }
+        #withdraw-section input[type="submit"] {
+            width: 100%;
+            max-width: 300px;
+        }
+        #withdraw-message {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <!-- Profile Section -->
+        <div id="profile-section" class="page">
+            <h1>Profile</h1>
+            <p><strong>User:</strong> <span id="profile-username">Loading...</span></p>
+            <p><strong>Joined:</strong> <span id="profile-joindate">Loading...</span></p>
+            <p><strong>Points:</strong> <span id="profile-points">Loading...</span></p>
+            <p><strong>Referral Link:</strong> <span id="profile-referral">Loading...</span> <button id="copy-ref-btn" style="margin-left: 10px; padding: 5px 10px; font-size: 12px;">Copy</button></p>
+        </div>
+
+        <!-- Tap Section -->
+        <div id="tap-section" class="page">
+            <!-- Points display moved above tap button -->
+            <div class="points-display" id="tap-points-display">0</div>
+            <div id="tap-button">TAP!</div>
+            <div id="energy-container">
+                <label for="energy-bar">Energy</label>
+                <div id="energy-bar">
+                    <div id="energy-fill"></div>
+                </div>
+                <div id="energy-level">100 / 100</div>
+            </div>
+        </div>
+
+        <!-- Task Section -->
+        <div id="task-section" class="page">
+            <h1>Tasks</h1>
+            <div id="task-list">
+                <!-- Tasks will be loaded here by JS -->
+            </div>
+        </div>
+
+        <!-- Withdraw Section -->
+        <div id="withdraw-section" class="page">
+            <h1>Withdraw Points</h1>
+            <form id="withdraw-form">
+                <p>Your Points: <span id="withdraw-points-available">0</span></p>
+                <label for="withdraw-amount">Amount:</label>
+                <input type="number" id="withdraw-amount" name="amount" min="1" required>
+
+                <label for="withdraw-method">Method:</label>
+                <select id="withdraw-method" name="method" required>
+                    <option value="">--Select Method--</option>
+                    <option value="paypal">PayPal</option>
+                    <option value="wired">Wired Transfer</option>
+                    <option value="crypto">Crypto (USDT)</option>
+                </select>
+
+                <label for="withdraw-details">Details (e.g., PayPal email, Bank info, Wallet address):</label>
+                <input type="text" id="withdraw-details" name="details" required>
+
+                <input type="submit" value="Withdraw">
+            </form>
+             <div id="withdraw-message"></div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav id="bottom-nav">
+        <button data-page="profile-section">Profile</button>
+        <button data-page="tap-section" class="active-nav">Tap</button> <!-- Default active -->
+        <button data-page="task-section">Tasks</button>
+        <button data-page="withdraw-section">Withdraw</button>
+    </nav>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- State Management ---
+            const LOCAL_STORAGE_KEY = 'tapSwapCloneState';
+            const MAX_ENERGY = 100;
+            const ENERGY_REFILL_RATE_PER_SECOND = 0.5; // How much energy refills per second
+            const TAP_ENERGY_COST = 1;
+            const TAP_POINTS_GAIN = 1;
+
+            let gameState = {
+                userName: "TelegramUser123", // Placeholder
+                joiningDate: new Date().toISOString(),
+                points: 0,
+                energy: MAX_ENERGY,
+                referralLink: `t.me/tapswap_clone?ref=${Date.now()}`, // Simple placeholder link
+                completedTasks: [], // Array of task IDs
+            };
+
+            // --- DOM Elements ---
+            const app = document.getElementById('app');
+            const pages = document.querySelectorAll('.page');
+            const navButtons = document.querySelectorAll('#bottom-nav button');
+
+            // Profile Elements
+            const profileUsername = document.getElementById('profile-username');
+            const profileJoinDate = document.getElementById('profile-joindate');
+            const profilePoints = document.getElementById('profile-points');
+            const profileReferral = document.getElementById('profile-referral');
+            const copyRefBtn = document.getElementById('copy-ref-btn');
+
+            // Tap Elements
+            const tapButton = document.getElementById('tap-button');
+            const tapPointsDisplay = document.getElementById('tap-points-display');
+            const energyFill = document.getElementById('energy-fill');
+            const energyLevel = document.getElementById('energy-level');
+
+            // Task Elements
+            const taskList = document.getElementById('task-list');
+
+            // Withdraw Elements
+            const withdrawPointsAvailable = document.getElementById('withdraw-points-available');
+            const withdrawForm = document.getElementById('withdraw-form');
+            const withdrawAmountInput = document.getElementById('withdraw-amount');
+            const withdrawMessage = document.getElementById('withdraw-message');
+
+            // --- Tasks Definition ---
+            const tasks = [
+                { id: 'watch_yt_1', description: 'Watch YouTube Video 1', reward: 1000 },
+                { id: 'watch_yt_2', description: 'Watch YouTube Video 2', reward: 1000 },
+                { id: 'watch_yt_3', description: 'Watch YouTube Video 3', reward: 1000 },
+                { id: 'watch_yt_4', description: 'Watch YouTube Video 4', reward: 1000 },
+                { id: 'watch_yt_5', description: 'Watch YouTube Video 5', reward: 1000 },
+                { id: 'follow_tg', description: 'Follow Telegram Channel', reward: 500 },
+                { id: 'join_discord', description: 'Join Discord Server', reward: 500 },
+            ];
+
+            // --- Functions ---
+
+            function saveState() {
+                try {
+                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(gameState));
+                } catch (error) {
+                    console.error("Error saving state to localStorage:", error);
+                }
+            }
+
+            function loadState() {
+                const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (savedState) {
+                    try {
+                        const parsedState = JSON.parse(savedState);
+                        // Merge saved state with defaults to ensure new properties are added
+                        gameState = { ...gameState, ...parsedState };
+                        // Ensure energy is not above max after loading
+                        gameState.energy = Math.min(gameState.energy, MAX_ENERGY);
+                    } catch (error) {
+                        console.error("Error parsing state from localStorage:", error);
+                        // If parsing fails, use default and save it
+                        saveState();
+                    }
+                } else {
+                    // Save initial default state if nothing is found
+                    saveState();
+                }
+            }
+
+            function updatePointsDisplay() {
+                const points = Math.floor(gameState.points);
+                tapPointsDisplay.textContent = points;
+                profilePoints.textContent = points;
+                withdrawPointsAvailable.textContent = points;
+                withdrawAmountInput.max = points; // Update max withdrawable amount
+            }
+
+            function updateEnergyDisplay() {
+                const currentEnergy = Math.floor(gameState.energy);
+                energyLevel.textContent = `${currentEnergy} / ${MAX_ENERGY}`;
+                const energyPercent = (currentEnergy / MAX_ENERGY) * 100;
+                energyFill.style.width = `${energyPercent}%`;
+                // Disable tap button if not enough energy
+                tapButton.disabled = currentEnergy < TAP_ENERGY_COST;
+                tapButton.style.cursor = tapButton.disabled ? 'not-allowed' : 'pointer';
+                tapButton.style.backgroundColor = tapButton.disabled ? '#555' : '#ff5722';
+            }
+
+            function showPage(pageId) {
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                const targetPage = document.getElementById(pageId);
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                    // Scroll to top of the page content when switching
+                    app.scrollTop = 0;
+                }
+
+                navButtons.forEach(button => {
+                    button.classList.remove('active-nav');
+                    if (button.dataset.page === pageId) {
+                        button.classList.add('active-nav');
+                    }
+                });
+
+                // Update content specific to the shown page
+                if (pageId === 'profile-section') updateProfileDisplay();
+                if (pageId === 'task-section') renderTasks();
+                if (pageId === 'withdraw-section') updateWithdrawDisplay();
+            }
+
+            function handleTap() {
+                if (gameState.energy >= TAP_ENERGY_COST) {
+                    gameState.energy -= TAP_ENERGY_COST;
+                    gameState.points += TAP_POINTS_GAIN;
+
+                    updatePointsDisplay();
+                    updateEnergyDisplay();
+                    saveState(); // Save after each tap
+
+                    // Add visual feedback
+                    tapButton.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        tapButton.style.transform = 'scale(1)';
+                    }, 100);
+
+                } else {
+                    console.log("Not enough energy!");
+                }
+            }
+
+            function refillEnergy() {
+                if (gameState.energy < MAX_ENERGY) {
+                    gameState.energy = Math.min(MAX_ENERGY, gameState.energy + ENERGY_REFILL_RATE_PER_SECOND);
+                    updateEnergyDisplay();
+                    // Save state less frequently for energy refill to avoid excessive writes
+                    // Consider saving only when energy changes significantly or on page change/unload
+                }
+            }
+            // Save state periodically or on unload for energy refills
+            setInterval(saveState, 5000); // Save every 5 seconds for energy changes
+            window.addEventListener('beforeunload', saveState); // Save when closing
+
+            function updateProfileDisplay() {
+                profileUsername.textContent = gameState.userName;
+                profileJoinDate.textContent = new Date(gameState.joiningDate).toLocaleDateString();
+                profileReferral.textContent = gameState.referralLink;
+                updatePointsDisplay(); // Ensure points are up-to-date here too
+            }
+
+             function renderTasks() {
+                taskList.innerHTML = ''; // Clear previous tasks
+                tasks.forEach(task => {
+                    const isCompleted = gameState.completedTasks.includes(task.id);
+                    const taskElement = document.createElement('div');
+                    taskElement.classList.add('task-item');
+                    taskElement.innerHTML = `
+                        <div>
+                            <p>${task.description}</p>
+                            <span>Reward: ${task.reward} points</span>
+                        </div>
+                        <button data-task-id="${task.id}" ${isCompleted ? 'disabled' : ''}>
+                            ${isCompleted ? 'Completed' : 'Claim'}
+                        </button>
+                    `;
+                    taskList.appendChild(taskElement);
+                });
+
+                // Add event listeners to the new buttons
+                taskList.querySelectorAll('button[data-task-id]').forEach(button => {
+                    button.addEventListener('click', handleTaskCompletion);
+                });
+            }
+
+            function handleTaskCompletion(event) {
+                const button = event.target;
+                const taskId = button.dataset.taskId;
+
+                if (!gameState.completedTasks.includes(taskId)) {
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                        gameState.points += task.reward;
+                        gameState.completedTasks.push(taskId);
+                        button.disabled = true;
+                        button.textContent = 'Completed';
+                        updatePointsDisplay();
+                        saveState();
+                        console.log(`Task ${taskId} completed. Awarded ${task.reward} points.`);
+                         // Optionally, re-render tasks to ensure consistency if needed elsewhere
+                         // renderTasks();
+                    }
+                }
+            }
+
+            function updateWithdrawDisplay() {
+                 updatePointsDisplay(); // Ensure points are current
+                 withdrawMessage.textContent = ''; // Clear previous messages
+                 withdrawForm.reset(); // Reset form fields
+            }
+
+            function handleWithdraw(event) {
+                event.preventDefault();
+                const amount = parseInt(withdrawAmountInput.value, 10);
+                const method = document.getElementById('withdraw-method').value;
+                const details = document.getElementById('withdraw-details').value;
+
+                withdrawMessage.textContent = ''; // Clear previous message
+
+                if (isNaN(amount) || amount <= 0) {
+                    withdrawMessage.textContent = 'Please enter a valid amount.';
+                    withdrawMessage.style.color = 'red';
+                    return;
+                }
+                if (amount > gameState.points) {
+                    withdrawMessage.textContent = 'Insufficient points.';
+                     withdrawMessage.style.color = 'red';
+                    return;
+                }
+                 if (!method) {
+                    withdrawMessage.textContent = 'Please select a withdrawal method.';
+                    withdrawMessage.style.color = 'red';
+                    return;
+                }
+                if (!details.trim()) {
+                    withdrawMessage.textContent = 'Please provide withdrawal details.';
+                    withdrawMessage.style.color = 'red';
+                    return;
+                }
+
+                // Simulate withdrawal
+                gameState.points -= amount;
+                updatePointsDisplay();
+                saveState();
+
+                console.log(`Withdrawal requested: ${amount} points via ${method} to ${details}`);
+                withdrawMessage.textContent = `Withdrawal of ${amount} points requested successfully! (Simulation)`;
+                withdrawMessage.style.color = 'lightgreen';
+                withdrawForm.reset(); // Reset form after successful simulation
+                 updateWithdrawDisplay(); // Refresh available points display
+            }
+
+            function copyReferralLink() {
+                navigator.clipboard.writeText(gameState.referralLink)
+                    .then(() => {
+                        alert("Referral link copied to clipboard!");
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        alert("Failed to copy link.");
+                    });
+            }
+
+
+            // --- Event Listeners ---
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    showPage(button.dataset.page);
+                });
+            });
+
+            tapButton.addEventListener('click', handleTap);
+            withdrawForm.addEventListener('submit', handleWithdraw);
+            copyRefBtn.addEventListener('click', copyReferralLink);
+
+            // --- Initialization ---
+            loadState();
+            updatePointsDisplay();
+            updateEnergyDisplay();
+            setInterval(refillEnergy, 1000); // Start energy refill timer
+            showPage('tap-section'); // Show tap section by default
+
+        });
+    </script>
+
+</body>
+</html>
